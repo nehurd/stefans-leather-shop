@@ -1,0 +1,16 @@
+// Leather-tan/amber + charcoal theme for Stefan's Leather & Shoe Repair.
+// Overrides Bootstrap's own Sass variables before compiling, so every
+// component (not just utility classes) picks up the brand palette.
+// Verified WCAG AA contrast (see build notes): charcoal-on-cream 14.01:1,
+// amber-on-charcoal 5.10:1, charcoal-on-amber 5.10:1, tan-on-charcoal 8.35:1.
+
+$dark: #2a211d;
+$warning: #c1873b;
+$secondary: #c9bba6;
+$body-bg: #f7f1e7;
+$body-color: $dark;
+$primary: $dark;
+$link-color: $warning;
+$link-hover-color: darken($warning, 12%);
+
+@import "bootstrap/scss/bootstrap";
