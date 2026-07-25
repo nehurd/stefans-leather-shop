@@ -3,6 +3,13 @@
 // component (not just utility classes) picks up the brand palette.
 // Verified WCAG AA contrast (see build notes): charcoal-on-cream 14.01:1,
 // amber-on-charcoal 5.10:1, charcoal-on-amber 5.10:1, tan-on-charcoal 8.35:1.
+//
+// Everything here must be set BEFORE the "bootstrap/scss/bootstrap" import.
+// Bootstrap's _variables.scss builds derived maps (like $theme-colors) from
+// these scalars in the same file it declares their !default fallbacks, so
+// our values must already exist when that file runs — a later reassignment
+// (e.g. after @import "bootstrap/scss/variables") is too late for anything
+// that map already baked in, even though direct var() references still work.
 
 $dark: #2a211d;
 $warning: #c1873b;
@@ -12,5 +19,26 @@ $body-color: $dark;
 $primary: $dark;
 $link-color: $warning;
 $link-hover-color: darken($warning, 12%);
+
+// Default 1px border at ~1.3:1 contrast fails WCAG's 3:1 non-text-contrast
+// requirement for form field boundaries. 2px + a charcoal tint clears 3:1
+// (verified 3.15:1) without touching borders on other components.
+$input-border-width: 2px;
+$input-border-color: rgba($dark, 0.5);
+
+// Bootstrap's spacer scale jumps 8px (mb-2) -> 16px (mb-3) with nothing
+// between; the hero's stacked mobile CTAs need exactly 10px. Redeclaring the
+// full map (not map-merge-ing Bootstrap's) keeps this a same-file scalar
+// override like everything else above, avoiding the $theme-colors trap.
+$spacer: 1rem;
+$spacers: (
+  0: 0,
+  1: $spacer * 0.25,
+  2: $spacer * 0.5,
+  3: $spacer,
+  4: $spacer * 1.5,
+  5: $spacer * 3,
+  "10px": 0.625rem,
+);
 
 @import "bootstrap/scss/bootstrap";
