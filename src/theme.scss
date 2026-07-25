@@ -45,7 +45,9 @@ $spacers: (
 // to a new line on real devices (iPhone Chrome) even with wrapping allowed
 // below, because flexbox prefers wrapping the whole row over shrinking an
 // item past its content width. Shrinking the brand text itself removes the
-// overflow instead of fighting that flex behavior.
-$navbar-brand-font-size: 0.875rem;
+// overflow instead of fighting that flex behavior. 1.0625rem (17px) is ~20%
+// up from the 14px that first fixed the wrap -- re-verify no wrap at 375px
+// and 430px before shipping if this gets nudged again.
+$navbar-brand-font-size: 1.0625rem;
 
 @import "bootstrap/scss/bootstrap";
