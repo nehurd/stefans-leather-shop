@@ -1,0 +1,61 @@
+# Merges work pushed by Claude cloud sessions (branches claude/**) into main automatically.
+# Installed in every repo by claude-home/bin/add-automerge.sh — edit the template there, not here.
+#
+# Files listed in .github/automerge-ours.txt are machine-generated (DBs, spreadsheets, state
+# files that scheduled jobs rewrite); on a conflict main's copy always wins. Any other conflict
+# fails the run — GitHub emails Rick, and the branch is left for a session to rebase.
+name: Auto-merge Claude branches
+
+on:
+  push:
+    branches: ['claude/**']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: claude-automerge
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Merge into main
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git config user.name "claude-automerge"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch -q origin main "$BRANCH"
+            git reset -q --hard origin/main
+            if ! git merge -q --no-edit "origin/$BRANCH"; then
+              touch .github/automerge-ours.txt
+              for f in $(git diff --name-only --diff-filter=U); do
+                if grep -qxF "$f" .github/automerge-ours.txt; then
+                  git checkout --ours -- "$f" && git add -- "$f"
+                fi
+              done
+              if [ -n "$(git diff --name-only --diff-filter=U)" ]; then
+                echo "::error::Conflict needs a human/Claude: $(git diff --name-only --diff-filter=U | tr '\n' ' ')"
+                git merge --abort
+                exit 1
+              fi
+              git commit -q --no-edit
+            fi
+            # Scheduled jobs push to main often; retry if one landed in the meantime.
+            if git push -q origin HEAD:main; then
+              git push -q origin --delete "$BRANCH" || true
+              exit 0
+            fi
+            sleep $((attempt * 5))
+          done
+          echo "::error::Could not push to main after 5 attempts"
+          exit 1
